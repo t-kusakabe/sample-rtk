@@ -1,0 +1,17 @@
+version: "3.7"
+
+services:
+  node:
+    build:
+      context: .
+      dockerfile: ./docker/node/Dockerfile
+    container_name: node
+    command: npm run start
+    ports:
+      - 3000:3000
+    volumes:
+      - type: bind
+        source: .
+        target: /sample-rtk
+    tty: true
+    stdin_open: true
