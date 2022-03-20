@@ -1,56 +1,82 @@
-import React from 'react';
-import logo from './logo.svg';
-import { Counter } from './features/counter/Counter';
-import './App.css';
+import React, { useState } from 'react';
+import { useAppDispatch, useAppSelector } from './app/hooks';
+import { loginAsync, selectLoadingStatus } from './features/auth/authSlice';
+import { useLoginMutation } from './features/rtk-auth/rtkAuthSlice';
 
 function App() {
+  const [userName, setUserName] = useState<string>('');
+  const inputHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setUserName(event.target.value);
+  };
+
+  const dispatch = useAppDispatch();
+  const loadingStatus = useAppSelector(selectLoadingStatus);
+  const loginHandler = async () => {
+    const result = await dispatch(
+      loginAsync({
+        userName: userName,
+        password: 'pass1234'
+      })
+    );
+
+    if (loginAsync.fulfilled.match(result)) {
+      alert('login success.');
+    }
+
+    if (loginAsync.rejected.match(result)) {
+      alert('login failed.');
+    }
+  };
+
+  const [login, { isLoading, isError }] = useLoginMutation();
+
+  const rtkLoginHandler = async () => {
+    const data = {
+      userName: userName,
+      password: 'pass1234'
+    };
+
+    try {
+      const response = await login(data).unwrap();
+      alert('login success.');
+    } catch (error) {
+      alert('login failed.');
+    }
+  };
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <Counter />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <span>
-          <span>Learn </span>
-          <a
-            className="App-link"
-            href="https://reactjs.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            React
-          </a>
-          <span>, </span>
-          <a
-            className="App-link"
-            href="https://redux.js.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Redux
-          </a>
-          <span>, </span>
-          <a
-            className="App-link"
-            href="https://redux-toolkit.js.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Redux Toolkit
-          </a>
-          ,<span> and </span>
-          <a
-            className="App-link"
-            href="https://react-redux.js.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            React Redux
-          </a>
-        </span>
-      </header>
+      <input
+        type="text"
+        name="userName"
+        placeholder="john"
+        value={userName}
+        onChange={inputHandler}
+      />
+
+      <hr />
+
+      <div>
+        <button type="button" onClick={loginHandler}>
+          CreateAsyncThunk Login
+        </button>
+
+        {loadingStatus === 'loading' ? (
+          <div>loading...</div>
+        ) : loadingStatus === 'failed' ? (
+          <div>failed...</div>
+        ) : null}
+      </div>
+
+      <hr />
+
+      <div>
+        <button type="button" onClick={rtkLoginHandler}>
+          RTK Login
+        </button>
+
+        {isLoading ? <div>loading...</div> : isError ? <div>failed...</div> : null}
+      </div>
     </div>
   );
 }
